@@ -1,0 +1,475 @@
+1
+00:00:00,000 --> 00:00:03,828
+This presentation is on Node2Vec, which is a scalable feature learning for networks.
+
+2
+00:00:03,829 --> 00:00:06,344
+This will be focusing on problems which has been trying to solve,
+
+3
+00:00:06,345 --> 00:00:10,865
+problems with current approaches and the actual implementation part of the
+
+4
+00:00:11,194 --> 00:00:13,594
+algorithm, but we'll not be focusing on the,
+
+5
+00:00:14,199 --> 00:00:17,926
+application side of it. Problem which has been trying to solve is that there's
+
+6
+00:00:17,927 --> 00:00:20,160
+a graph which is a set of vertices, edges,
+
+7
+00:00:20,161 --> 00:00:23,092
+and weights. We want to convert it to a low-dimensional space of features.
+
+8
+00:00:23,093 --> 00:00:25,587
+That maximizes the likelihood of preserving network neighborhoods of nodes.
+
+9
+00:00:26,108 --> 00:00:30,491
+So it's just a mapping from a graph to a set of features while
+
+10
+00:00:30,492 --> 00:00:32,906
+preserving network dependencies and,
+
+11
+00:00:33,928 --> 00:00:37,234
+specifically neighborhood network dependencies.
+
+12
+00:00:37,235 --> 00:00:40,214
+So for example, if I have a node which is connected to many other
+
+13
+00:00:40,215 --> 00:00:43,845
+nodes, I would like that information to be captured in the,
+
+14
+00:00:44,300 --> 00:00:48,230
+feature representation or mapping that I'm using. And why we want to do this
+
+15
+00:00:48,231 --> 00:00:52,047
+is because most supervised machine learning algorithms require a set of informative,
+
+16
+00:00:52,048 --> 00:00:56,635
+discriminating, and independent features because only then can we make predictions or
+
+17
+00:00:57,076 --> 00:00:59,130
+solve anything, basically optimize anything,
+
+18
+00:00:59,518 --> 00:01:01,667
+on a set of features.
+
+19
+00:01:01,668 --> 00:01:05,028
+Right, so you require that set of features and you require that mapping from
+
+20
+00:01:05,029 --> 00:01:09,301
+graph to features. You cannot feed directly a graph into a supervised ML model.
+
+21
+00:01:09,679 --> 00:01:12,994
+Problems with current approaches is hand engineering is one of the methods that is
+
+22
+00:01:13,321 --> 00:01:16,191
+done. So, for example, if you know, a protein contact network,
+
+23
+00:01:16,192 --> 00:01:20,745
+you would probably try to use your domain knowledge to extract features from it,
+
+24
+00:01:21,146 --> 00:01:25,029
+but that is tedious and not generalizable. A downstream prediction task is accurate,
+
+25
+00:01:25,030 --> 00:01:27,364
+but time complexity-wise, it's extremely,
+
+26
+00:01:27,374 --> 00:01:31,885
+huge. The classic, dimensionality reduction algorithms use eigenvectors.
+
+27
+00:01:31,886 --> 00:01:34,886
+Composition of the data matrix, which is expensive for large real-world networks,
+
+28
+00:01:34,887 --> 00:01:37,440
+for example, social network have millions and millions of nodes,
+
+29
+00:01:37,737 --> 00:01:40,319
+and so it will not work with this,
+
+30
+00:01:40,320 --> 00:01:43,767
+and we have seen that the results that they give are also not very
+
+31
+00:01:43,768 --> 00:01:45,906
+good on prediction task over networks.
+
+32
+00:01:45,907 --> 00:01:46,337
+What
+
+33
+00:01:46,338 --> 00:01:51,700
+Node2Vec was inspired by was from Word2Vec and specifically the Scriptgram methodology
+
+34
+00:01:51,701 --> 00:01:55,464
+of Word2Vec where we are trying to learn the hidden neural,
+
+35
+00:01:55,475 --> 00:01:59,174
+so it's a single-layered neural network which converts an input vector which is one-hot
+
+36
+00:01:59,175 --> 00:02:01,526
+encoded into an output vector which is one-hot encoded, and what we are trying
+
+37
+00:02:01,527 --> 00:02:01,895
+to do is to,
+
+38
+00:02:01,896 --> 00:02:04,052
+determine the weights of the hidden layer, and we can convert,
+
+39
+00:02:04,053 --> 00:02:11,131
+con, control
+
+40
+00:02:11,132 --> 00:02:15,172
+the dimensions of the vector as well, so we can get a mapping of
+
+41
+00:02:15,396 --> 00:02:18,158
+the dimension we want mapping from.
+
+42
+00:02:18,159 --> 00:02:21,852
+The graph to a dimension we want, so over here what was done was,
+
+43
+00:02:21,853 --> 00:02:24,256
+it was done on a sentence, so a sentence had a context window,
+
+44
+00:02:24,257 --> 00:02:26,239
+and that context window was,
+
+45
+00:02:26,250 --> 00:02:26,772
+defined as,
+
+46
+00:02:26,783 --> 00:02:32,615
+words that are
+
+47
+00:02:32,616 --> 00:02:34,875
+close by to the particular word that we are looking at, and over there,
+
+48
+00:02:34,876 --> 00:02:39,582
+we could use the other words in the context window for getting
+
+49
+00:02:39,583 --> 00:02:42,115
+the hidden layer weights, right?
+
+50
+00:02:42,116 --> 00:02:44,098
+Over here, in,
+
+51
+00:02:44,108 --> 00:02:46,998
+in our model of a graph, we do not have that liberty,
+
+52
+00:02:46,999 --> 00:02:50,186
+because a graph is not a sentence, so we,
+
+53
+00:02:50,196 --> 00:02:52,787
+do something else to model it as a sentence,
+
+54
+00:02:52,788 --> 00:02:55,122
+it was inspired by word2vec. Key features are,
+
+55
+00:02:55,123 --> 00:02:57,489
+it's semi-supervised, it's scalable,
+
+56
+00:02:57,490 --> 00:03:00,092
+because most of the methods that it uses is parallelizable,
+
+57
+00:03:00,420 --> 00:03:02,868
+it uses stochastic gradient descent and random walk-of second degree,
+
+58
+00:03:02,869 --> 00:03:06,056
+which are stochastic approximations, it wants to capture,
+
+59
+00:03:06,057 --> 00:03:08,231
+we want to capture homophily and structural equivalence,
+
+60
+00:03:08,232 --> 00:03:10,454
+homophily means that a node U is,
+
+61
+00:03:10,464 --> 00:03:14,191
+connected to S1, S2, S3, and S4, because they are close by to each
+
+62
+00:03:14,192 --> 00:03:16,387
+other, U and S6 are also structurally equivalent,
+
+63
+00:03:16,388 --> 00:03:20,015
+because they have degree 4, and the structure are more or less equal,
+
+64
+00:03:20,286 --> 00:03:21,084
+topologically,
+
+65
+00:03:21,094 --> 00:03:23,456
+we want to capture both of these things.
+
+66
+00:03:23,457 --> 00:03:24,933
+Our objective function is,
+
+67
+00:03:24,944 --> 00:03:27,375
+probability of next-neighborhood set of U,
+
+68
+00:03:27,385 --> 00:03:30,243
+given F of U, our objective function is F of U,
+
+69
+00:03:30,253 --> 00:03:33,996
+we want to maximize this particular summation, why we want to do this is
+
+70
+00:03:33,997 --> 00:03:37,256
+because, so first of all, we use sampling technique S,
+
+71
+00:03:37,645 --> 00:03:40,180
+while getting next-neighborhood set of U,
+
+72
+00:03:40,190 --> 00:03:43,493
+this sampling technique could be BFS over here,
+
+73
+00:03:43,924 --> 00:03:47,728
+the red arrows, or DFS blue arrows, it could be something wildly different from
+
+74
+00:03:47,729 --> 00:03:48,901
+that, and that is okay as well,
+
+75
+00:03:48,912 --> 00:03:52,173
+so we get a next-neighborhood set of U, based on a sampling technique S,
+
+76
+00:03:52,463 --> 00:03:55,538
+and we want our function to get as close to that as possible,
+
+77
+00:03:55,539 --> 00:03:58,101
+we use logarithmic to prevent underflow errors,
+
+78
+00:03:58,701 --> 00:04:00,043
+there are two approximations,
+
+79
+00:04:01,043 --> 00:04:01,054
+one of them is that these are conditionally,
+
+80
+00:04:01,055 --> 00:04:05,756
+independence, there's conditional independence in the probabilities of the neighbors
+
+81
+00:04:05,757 --> 00:04:10,671
+of U, in the neighbors belonging to the next-neighborhood set of U,
+
+82
+00:04:10,681 --> 00:04:13,277
+and there is a symmetry requirement,
+
+83
+00:04:13,396 --> 00:04:16,258
+which enables a decomposition into,
+
+84
+00:04:16,269 --> 00:04:17,921
+this using the softmax function,
+
+85
+00:04:17,922 --> 00:04:18,400
+ZU is
+
+86
+00:04:18,423 --> 00:04:19,137
+extremely,
+
+87
+00:04:19,148 --> 00:04:21,349
+difficult to calculate, so we use negative weights,
+
+88
+00:04:21,521 --> 00:04:26,238
+so instead of, doing this for every node and every,
+
+89
+00:04:26,249 --> 00:04:30,031
+ne-ne-node in the next-neighborhood set, we do it for only few nodes,
+
+90
+00:04:30,058 --> 00:04:32,209
+a small subset of the weights, right,
+
+91
+00:04:32,720 --> 00:04:35,128
+we still have positive context words, but,
+
+92
+00:04:35,129 --> 00:04:38,129
+we do not update the
+
+93
+00:04:39,208 --> 00:04:43,680
+weights for every word. So over here we use a second-order random walk,
+
+94
+00:04:43,681 --> 00:04:47,727
+which is basically that if we are given a node V and it came
+
+95
+00:04:47,728 --> 00:04:51,863
+from T, we would have probabilities assigned to it going back to T,
+
+96
+00:04:52,141 --> 00:04:55,797
+probability of going to a node which it is directly connected to,
+
+97
+00:04:56,108 --> 00:04:58,703
+and which it is connected to via two nodes.
+
+98
+00:04:58,704 --> 00:05:01,635
+So if the distance between them is two, there would be a probability of
+
+99
+00:05:01,636 --> 00:05:04,243
+one by Q, where Q is something we can control.
+
+100
+00:05:04,581 --> 00:05:07,371
+If it came from T, where there will be one by P,
+
+101
+00:05:07,372 --> 00:05:10,123
+we can control P, right? Z is a normalization constant,
+
+102
+00:05:10,124 --> 00:05:15,762
+pi is the weight, and the alpha parameter, alpha parameter
+
+103
+00:05:15,763 --> 00:05:18,961
+is something that we can control. It's an added term. It's an added term
+
+104
+00:05:18,962 --> 00:05:23,726
+for introducing bias in the random walk because we can control the bias by
+
+105
+00:05:23,727 --> 00:05:24,849
+tuning the hyperparameters,
+
+106
+00:05:24,896 --> 00:05:27,455
+The actual algorithm, I think I've gone through most of it.
+
+107
+00:05:27,456 --> 00:05:31,080
+Limitations, it does not differentiate between the relation types.
+
+108
+00:05:31,081 --> 00:05:32,205
+For example, if I am doing a movie,
+
+109
+00:05:32,206 --> 00:05:37,342
+sequence as a particular graph, there
+
+110
+00:05:37,343 --> 00:05:42,034
+are various kinds of relationships in that movie.
+
+111
+00:05:42,035 --> 00:05:44,126
+A husband, wife, a boyfriend, girlfriend,
+
+112
+00:05:44,127 --> 00:05:45,614
+a son, daughter, etc.
+
+113
+00:05:45,615 --> 00:05:50,449
+so we, Node2Vec takes a graph as a set of V,
+
+114
+00:05:50,641 --> 00:05:53,242
+E, and W, that's it.
+
+115
+00:05:53,243 --> 00:05:56,531
+It does not consider features within any of those,
+
+116
+00:05:56,532 --> 00:05:58,226
+V, E, or W, right?
+
+117
+00:05:58,227 --> 00:06:02,149
+it depends only on network topology. It's a transductive node embedding algorithm,
+
+118
+00:06:02,150 --> 00:06:04,586
+means that it needs the entire graph to be available to learn the node
+
+119
+00:06:04,587 --> 00:06:06,691
+embeddings. We cannot run it on a subset of subgraphs.
